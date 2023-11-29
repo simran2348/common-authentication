@@ -1,12 +1,18 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { connectionString } = require("./constant");
+const { resource } = require("./constant");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Connect to MongoDB
-mongoose.connect(connectionString);
+mongoose.connect(resource.text.connectionString);
+
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
+
+// Defining auth route
+app.use("/api/auth", require("./routes/authRoute"));
 
 const db = mongoose.connection;
 
