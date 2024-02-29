@@ -7,11 +7,11 @@ const resource = {
     register: "/register",
     forgotPassword: "/forgotPassword",
     getUser: "/getUser",
+    verifyEmail: "/verify/:token",
   },
   errorText: {
     usernameCheck: {
       check1: "Username is Required",
-      check2: "Username must have atleast 6 letters",
     },
     emailCheck: "Please add a valid email",
     passwordCheck: "Please enter a password  with 6 or more characters",
@@ -40,6 +40,10 @@ const resource = {
   },
   text: {
     connectionString: `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_DATABASE}/`,
+    verificationEmailFrom: "app.com",
+    verificationEmailSubject: "Email Verification",
+    VerificationEmailBody:
+      "Please click the following link to verify your email : ",
   },
 };
 

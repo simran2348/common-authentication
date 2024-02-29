@@ -2,12 +2,13 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
-const User = require("../schema/User");
-
 const { check, validationResult } = require("express-validator");
 const { resource } = require("../constant");
 const tokenAuth = require("../middleware/tokenAuth");
+const sendVerificationEmail = require("../services/emailService");
+require("dotenv").config();
+
+const User = require("../schema/User");
 
 //@route    POST api/auth
 //@desc     Register new user
@@ -15,10 +16,7 @@ const tokenAuth = require("../middleware/tokenAuth");
 router.post(
   resource.routes.register,
   [
-    check("username", resource.errorText.usernameCheck.check1).not().isEmpty(),
-    check("username", resource.errorText.usernameCheck.check2).isLength({
-      min: 6,
-    }),
+    check("name", resource.errorText.usernameCheck.check1).not().isEmpty(),
     check("email", resource.errorText.emailCheck).isEmail(),
     check("password", resource.errorText.passwordCheck).isLength({ min: 6 }),
   ],
@@ -28,9 +26,9 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { username, email, password } = req.body;
+    const { name, email, password } = req.body;
     try {
-      let user = await User.findOne({ $or: [{ email }, { username }] });
+      let user = await User.findOne({ email });
 
       if (user) {
         return res.status(400).json({
@@ -44,14 +42,13 @@ router.post(
       }
 
       user = new User({
-        username,
+        name,
         email,
         password,
       });
 
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
-      await user.save();
 
       const payload = {
         user: {
@@ -65,13 +62,16 @@ router.post(
         { expiresIn: "1h" },
         (err, token) => {
           if (err) throw err;
+          user.verificationToken = token;
           res.json({
             msg: resource.successText.registrationSuccess.text,
             code: resource.successText.registrationSuccess.code,
             token,
           });
+          sendVerificationEmail(user.email, user.verificationToken);
         }
       );
+      await user.save();
     } catch (err) {
       console.error(err.message);
       res.status(500).json({
@@ -162,6 +162,35 @@ router.get(resource.routes.getUser, tokenAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({
+      msg: resource.errorText.serverError.text,
+      code: resource.errorText.serverError.code,
+    });
+  }
+});
+
+//@route    GET api/auth
+//@desc     Endpoint for email verification
+//@access   Public
+router.get(resource.routes.verifyEmail, async (req, res) => {
+  try {
+    const token = req.params.token;
+
+    // find user with the given token
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(404).json({ msg: "Invalid verification token" });
+    }
+
+    // mark user as verified
+    user.verified = true;
+    user.verificationToken = undefined;
+
+    await user.save();
+    res.status(200).json({ msg: "Email verified successfully" });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({
