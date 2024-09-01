@@ -22,7 +22,7 @@ router.post(
       return res.status(400).json({ msg: resource.errorText.emailCheck });
     }
 
-    const { name, email, password } = req.body;
+    const { email, password } = req.body;
     try {
       let user = await User.findOne({ email });
 
@@ -33,7 +33,6 @@ router.post(
       }
 
       user = new User({
-        name,
         email,
         password,
       });
@@ -71,35 +70,22 @@ router.post(
 );
 
 //@route    POST api/auth
-//@desc     Check username
-//@access   Public
-
-//@route    POST api/auth
-//@desc     Check email
-//@access   Public
-
-//@route    POST api/auth
 //@desc     User Login
 //@access   Public
 router.post(
   resource.routes.login,
-  [
-    check("email", "Please add a valid email").isEmail(),
-    check("password", "Password is required").exists(),
-  ],
+  check("email").isEmail(),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ msg: resource.errorText.emailCheck });
     }
 
     const { email, password } = req.body;
     try {
       let user = await User.findOne({ email });
       if (!user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
+        return res.status(400).json({ msg: resource.errorText.invalidUser });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
@@ -107,7 +93,7 @@ router.post(
       if (!isMatch) {
         return res
           .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
+          .json({ msg: resource.errorText.invalidPassword });
       }
 
       const payload = {
@@ -136,10 +122,6 @@ router.post(
     }
   }
 );
-
-//@route    POST api/auth
-//@desc     Forget password
-//@access   Public
 
 //@route    GET api/getUser
 //@desc     Get logged-in user details

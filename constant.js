@@ -11,7 +11,9 @@ const resource = {
   },
   errorText: {
     emailCheck: "Please add a valid email",
-    userExists: "User Already Exists",
+    userExists: "User already exists",
+    invalidUser: "User does not exists",
+    invalidPassword: "Password is invalid",
     serverError: "Server Error",
     tokenError: {
       noToken: "No token, Authorization Denied",
