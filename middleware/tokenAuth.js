@@ -6,8 +6,7 @@ module.exports = function (req, res, next) {
   const token = req.header("x-auth-token");
   if (!token) {
     return res.status(401).json({
-      msg: resource.errorText.tokenError.noToken.text,
-      code: resource.errorText.tokenError.noToken.code,
+      msg: resource.errorText.tokenError.noToken,
     });
   }
 
@@ -17,8 +16,7 @@ module.exports = function (req, res, next) {
     next();
   } catch (err) {
     res.status(401).json({
-      msg: resource.errorText.tokenError.tokenNotValid.text,
-      code: resource.errorText.tokenError.tokenNotValid.code,
+      msg: resource.errorText.tokenError.tokenNotValid,
     });
   }
 };

@@ -15,15 +15,11 @@ const User = require("../schema/User");
 //@access   Public
 router.post(
   resource.routes.register,
-  [
-    check("name", resource.errorText.usernameCheck.check1).not().isEmpty(),
-    check("email", resource.errorText.emailCheck).isEmail(),
-    check("password", resource.errorText.passwordCheck).isLength({ min: 6 }),
-  ],
+  check("email").isEmail(),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ msg: resource.errorText.emailCheck });
     }
 
     const { name, email, password } = req.body;
@@ -32,12 +28,7 @@ router.post(
 
       if (user) {
         return res.status(400).json({
-          errors: [
-            {
-              msg: resource.errorText.userExists.text,
-              errorCode: resource.errorText.userExists.code,
-            },
-          ],
+          msg: resource.errorText.userExists,
         });
       }
 
@@ -62,21 +53,18 @@ router.post(
         { expiresIn: "1h" },
         (err, token) => {
           if (err) throw err;
-          user.verificationToken = token;
           res.json({
-            msg: resource.successText.registrationSuccess.text,
-            code: resource.successText.registrationSuccess.code,
+            msg: resource.successText.registrationSuccess,
             token,
           });
-          sendVerificationEmail(user.email, user.verificationToken);
+          // sendVerificationEmail(user.email, user.verificationToken);
         }
       );
       await user.save();
     } catch (err) {
       console.error(err.message);
       res.status(500).json({
-        msg: resource.errorText.serverError.text,
-        code: resource.errorText.serverError.code,
+        msg: resource.errorText.serverError,
       });
     }
   }
@@ -135,8 +123,7 @@ router.post(
         (err, token) => {
           if (err) throw err;
           res.json({
-            msg: resource.successText.loginSuccess.text,
-            code: resource.successText.loginSuccess.code,
+            msg: resource.successText.loginSuccess,
             token,
           });
         }
@@ -144,8 +131,7 @@ router.post(
     } catch (err) {
       console.error(err.message);
       res.status(500).json({
-        msg: resource.errorText.serverError.text,
-        code: resource.errorText.serverError.code,
+        msg: resource.errorText.serverError,
       });
     }
   }
@@ -165,8 +151,7 @@ router.get(resource.routes.getUser, tokenAuth, async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).json({
-      msg: resource.errorText.serverError.text,
-      code: resource.errorText.serverError.code,
+      msg: resource.errorText.serverError,
     });
   }
 });
@@ -194,8 +179,7 @@ router.get(resource.routes.verifyEmail, async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).json({
-      msg: resource.errorText.serverError.text,
-      code: resource.errorText.serverError.code,
+      msg: resource.errorText.serverError,
     });
   }
 });

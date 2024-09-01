@@ -10,33 +10,17 @@ const resource = {
     verifyEmail: "/verify/:token",
   },
   errorText: {
-    usernameCheck: {
-      check1: "Username is Required",
-    },
     emailCheck: "Please add a valid email",
-    passwordCheck: "Please enter a password  with 6 or more characters",
-    userExists: { text: "User Already Exists", code: "ERR_USER_001" },
-    serverError: { text: "Server Error", code: "ERR_SERVER_001" },
+    userExists: "User Already Exists",
+    serverError: "Server Error",
     tokenError: {
-      noToken: {
-        text: "No token, Authorization Denied",
-        code: "ERR_TOKEN_001",
-      },
-      tokenNotValid: {
-        text: "Token is not valid",
-        code: "ERR_TOKEN_002",
-      },
+      noToken: "No token, Authorization Denied",
+      tokenNotValid: "Token is not valid",
     },
   },
   successText: {
-    registrationSuccess: {
-      text: "Registration successful",
-      code: "SUCCESS_REG",
-    },
-    loginSuccess: {
-      text: "Login successful",
-      code: "SUCCESS_LOGIN",
-    },
+    registrationSuccess: "Registration successful",
+    loginSuccess: "Login successful",
   },
   text: {
     connectionString: `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_DATABASE}/`,
