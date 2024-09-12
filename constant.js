@@ -5,13 +5,14 @@ const resource = {
     login: "/login",
     checkUsername: "/checkUsername",
     register: "/register",
+    checkEmail: "/checkEmail",
     forgotPassword: "/forgotPassword",
     getUser: "/getUser",
     verifyEmail: "/verify/:token",
   },
   errorText: {
     emailCheck: "Please add a valid email",
-    userExists: "User already exists",
+    userExists: "Email already exists",
     invalidUser: "User does not exists",
     invalidPassword: "Password is invalid",
     serverError: "Server Error",
@@ -23,6 +24,7 @@ const resource = {
   successText: {
     registrationSuccess: "Registration successful",
     loginSuccess: "Login successful",
+    success: "Success",
   },
   text: {
     connectionString: `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_DATABASE}/`,

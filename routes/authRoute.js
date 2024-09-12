@@ -10,11 +10,11 @@ require("dotenv").config();
 
 const User = require("../schema/User");
 
-//@route    POST api/auth
-//@desc     Register new user
+//@route    POST api/auth/checkEmail
+//@desc     Check user email
 //@access   Public
 router.post(
-  resource.routes.register,
+  resource.routes.checkEmail,
   check("email").isEmail(),
   async (req, res) => {
     const errors = validationResult(req);
@@ -22,7 +22,7 @@ router.post(
       return res.status(400).json({ msg: resource.errorText.emailCheck });
     }
 
-    const { email, password } = req.body;
+    const { email } = req.body;
     try {
       let user = await User.findOne({ email });
 
@@ -30,36 +30,11 @@ router.post(
         return res.status(400).json({
           msg: resource.errorText.userExists,
         });
+      } else {
+        return res.status(200).json({
+          msg: resource.successText.success,
+        });
       }
-
-      user = new User({
-        email,
-        password,
-      });
-
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" },
-        (err, token) => {
-          if (err) throw err;
-          res.json({
-            msg: resource.successText.registrationSuccess,
-            token,
-          });
-          // sendVerificationEmail(user.email, user.verificationToken);
-        }
-      );
-      await user.save();
     } catch (err) {
       console.error(err.message);
       res.status(500).json({
@@ -69,61 +44,87 @@ router.post(
   }
 );
 
-//@route    POST api/auth
+//@route    POST api/auth/register
+//@desc     Register new user
+//@access   Public
+router.post(resource.routes.register, async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    let user = new User({
+      email,
+      password,
+    });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) throw err;
+        res.json({
+          msg: resource.successText.registrationSuccess,
+          token,
+        });
+        // sendVerificationEmail(user.email, user.verificationToken);
+      }
+    );
+    await user.save();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({
+      msg: resource.errorText.serverError,
+    });
+  }
+});
+
+//@route    POST api/auth/login
 //@desc     User Login
 //@access   Public
-router.post(
-  resource.routes.login,
-  check("email").isEmail(),
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ msg: resource.errorText.emailCheck });
+router.post(resource.routes.login, async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    let user = await User.findOne({ email });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: resource.errorText.invalidPassword });
     }
 
-    const { email, password } = req.body;
-    try {
-      let user = await User.findOne({ email });
-      if (!user) {
-        return res.status(400).json({ msg: resource.errorText.invalidUser });
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" },
+      (err, token) => {
+        if (err) throw err;
+        res.json({
+          msg: resource.successText.loginSuccess,
+          token,
+        });
       }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return res
-          .status(400)
-          .json({ msg: resource.errorText.invalidPassword });
-      }
-
-      const payload = {
-        user: {
-          id: user.id,
-        },
-      };
-
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" },
-        (err, token) => {
-          if (err) throw err;
-          res.json({
-            msg: resource.successText.loginSuccess,
-            token,
-          });
-        }
-      );
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).json({
-        msg: resource.errorText.serverError,
-      });
-    }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({
+      msg: resource.errorText.serverError,
+    });
   }
-);
+});
 
-//@route    GET api/getUser
+//@route    GET api/auth/getUser
 //@desc     Get logged-in user details
 //@access   Private
 router.get(resource.routes.getUser, tokenAuth, async (req, res) => {
