@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+var cors = require("cors");
 const { resource } = require("./constant");
 
 const app = express();
@@ -10,6 +11,7 @@ mongoose.connect(resource.text.connectionString);
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true, limit: "100mb" }));
+app.use(cors());
 
 // Defining auth route
 app.use("/api/auth", require("./routes/authRoute"));

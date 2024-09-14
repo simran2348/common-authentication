@@ -21,20 +21,25 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ msg: resource.errorText.emailCheck });
     }
-
-    const { email } = req.body;
+    const { email, type } = req.body;
     try {
       let user = await User.findOne({ email });
+      const { statusCode, message } =
+        type === "R"
+          ? {
+              statusCode: user ? 400 : 200,
+              message: user
+                ? resource.errorText.userExists
+                : resource.successText.success,
+            }
+          : {
+              statusCode: user ? 200 : 400,
+              message: user
+                ? resource.successText.success
+                : resource.errorText.invalidUser,
+            };
 
-      if (user) {
-        return res.status(400).json({
-          msg: resource.errorText.userExists,
-        });
-      } else {
-        return res.status(200).json({
-          msg: resource.successText.success,
-        });
-      }
+      res.status(statusCode).json({ msg: message });
     } catch (err) {
       console.error(err.message);
       res.status(500).json({
@@ -54,16 +59,14 @@ router.post(resource.routes.register, async (req, res) => {
       email,
       password,
     });
-
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
-
+    await user.save();
     const payload = {
       user: {
         id: user.id,
       },
     };
-
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
@@ -77,7 +80,6 @@ router.post(resource.routes.register, async (req, res) => {
         // sendVerificationEmail(user.email, user.verificationToken);
       }
     );
-    await user.save();
   } catch (err) {
     console.error(err.message);
     res.status(500).json({

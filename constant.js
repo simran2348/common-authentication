@@ -3,7 +3,6 @@ require("dotenv").config();
 const resource = {
   routes: {
     login: "/login",
-    checkUsername: "/checkUsername",
     register: "/register",
     checkEmail: "/checkEmail",
     forgotPassword: "/forgotPassword",
